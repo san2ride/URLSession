@@ -52,7 +52,7 @@ class SearchViewController: UIViewController {
   }
   // Initialize a separate session with a default configuration, and specify a delegate, which receives URLSession events via delegate calls.
   lazy var downloadsSession: URLSession = {
-    let configuration = URLSessionConfiguration.default
+    let configuration = URLSessionConfiguration.background(withIdentifier: "bgSessionConfiguration")
     return URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
   }()
 

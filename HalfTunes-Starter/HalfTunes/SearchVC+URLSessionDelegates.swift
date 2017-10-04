@@ -7,10 +7,26 @@
 //
 
 import Foundation
+import UIKit
+
+extension SearchViewController: URLSessionDelegate {
+  
+  //Standard background session handler
+  func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
+    DispatchQueue.main.async {
+      if let appDelegate = UIApplication.shared.delegate as? AppDelegate,
+        let completionHandler = appDelegate.backgroundSessionCompletionHandler {
+        appDelegate.backgroundSessionCompletionHandler = nil
+        completionHandler()
+      }
+    }
+  }
+}
 
 //  URLSessionDownloadDelegate extension
 extension SearchViewController: URLSessionDownloadDelegate {
   
+  // Update progress info
   func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask,
     didFinishDownloadingTo location: URL) {
     
@@ -36,6 +52,28 @@ extension SearchViewController: URLSessionDownloadDelegate {
     if let index = download?.track.index {
       DispatchQueue.main.async {
         self.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .none)
+      }
+    }
+  }
+  
+  func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask,
+    didWriteData bytesWritten: Int64, totalBytesWritten: Int64,
+    totalBytesExpectedToWrite: Int64) {
+    
+    //1
+    guard let url = downloadTask.originalRequest?.url,
+      let download = downloadService.activeDownloads[url] else { return }
+    //2
+    download.progress = Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)
+    
+    //3
+    let totalSize = ByteCountFormatter.string(fromByteCount: totalBytesExpectedToWrite, countStyle: .file)
+    
+    //4
+    DispatchQueue.main.async {
+      if let trackCell = self.tableView.cellForRow(at: IndexPath(row: download.track.index,
+                                                                 section: 0)) as? TrackCell {
+        trackCell.updateDisplay(progress: download.progress, totalSize: totalSize)
       }
     }
   }

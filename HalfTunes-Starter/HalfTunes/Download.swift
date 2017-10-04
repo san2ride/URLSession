@@ -27,6 +27,6 @@ class Download {
   
   // Download delegate sets this value:
     // The fractional progress of the download: a float between 0.0 and 1.0.
-  var Progress: Float = 0
+  var progress: Float = 0
   
 }
